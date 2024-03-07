@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -10,6 +11,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strconv"
+	"sync"
 	"time"
 )
 
@@ -142,6 +145,76 @@ func (r *Req) UploadFile(fieldName, filePath string) error {
 
 	r.req.Body = io.NopCloser(body)
 	r.req.Header.Set("Content-Type", writer.FormDataContentType())
+	return nil
+}
+
+// DownloadFile 下载文件
+// url: 请求地址
+// filePath: 要保存的文件路径（包括文件名）
+// chunkCount: 分块下载的块数: 最大为 32, 0 表示不分块下载
+// return: 错误
+func (r *Req) DownloadFile(url, filePath string, chunkCount int) error {
+	if chunkCount > 32 {
+		chunkCount = 32
+	}
+
+	err := r.Get(url)
+	if err != nil {
+		return err
+	}
+
+	if r.GetHttpCode() != http.StatusOK {
+		return fmt.Errorf("server returned %d status", r.GetHttpCode())
+	}
+
+	size, err := strconv.Atoi(r.response.Header.Get("Content-Length"))
+	if err != nil {
+		return err
+	}
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if chunkCount > 1 && size > chunkCount {
+		return r.downloadFileChunks(url, file, size, chunkCount)
+	}
+
+	_, err = io.Copy(file, r.response.Body)
+	return err
+}
+
+func (r *Req) downloadFileChunks(url string, file *os.File, size, chunkCount int) error {
+	chunkSize := size / chunkCount
+	var wg sync.WaitGroup
+	wg.Add(chunkCount)
+
+	for i := 0; i < chunkCount; i++ {
+		start := i * chunkSize
+		end := start + chunkSize
+
+		if i == chunkCount-1 {
+			end = size
+		}
+
+		go func(start, end int) {
+			defer wg.Done()
+
+			r.req.Header.Add("Range", fmt.Sprintf("bytes=%d-%d", start, end-1))
+			err := r.Get(url)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			_, _ = file.Seek(int64(start), 0)
+			_, _ = io.Copy(file, r.response.Body)
+		}(start, end)
+	}
+
+	wg.Wait()
 	return nil
 }
 
