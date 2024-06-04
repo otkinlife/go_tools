@@ -27,6 +27,8 @@ type Job struct {
 	RunParams any        // 执行数据
 	RunStatus int        // 运行状态: 0表示排队中，1表示运行中，2表示已结束
 	RunRets   JobRet     // 执行结果
+	Retry     int        // 重试次数
+	MaxRetry  int        // 最大重试次数
 }
 
 type Runner struct {
@@ -51,13 +53,18 @@ func NewRunner(maxSize int) *Runner {
 	}
 }
 
-func (r *Runner) AddJob(handler JobExecute, runParams any) error {
+func (r *Runner) AddJob(handler JobExecute, runParams any, maxRetry int) error {
+	if maxRetry <= 0 {
+		maxRetry = 1
+	}
 	jobID := uuid.NewString()
 	r.jobs.Store(jobID, &Job{
 		ID:        jobID,
 		Execute:   handler,
 		RunStatus: StatusWait,
 		RunParams: runParams,
+		MaxRetry:  maxRetry,
+		Retry:     0,
 	})
 	r.jobsCount++
 	return nil
@@ -88,7 +95,13 @@ func (r *Runner) Run() {
 				job.RunStatus = StatusEnd
 				r.wg.Done()
 			}()
-			ret = handler(params)
+			for job.Retry < job.MaxRetry {
+				job.Retry++
+				ret = handler(params)
+				if ret.Err == nil {
+					break
+				}
+			}
 		}(job.ID, job.Execute, job.RunParams)
 		return true
 	})

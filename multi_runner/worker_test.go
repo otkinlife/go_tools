@@ -15,7 +15,7 @@ func TestRun(t *testing.T) {
 				Err:  nil,
 				Data: fmt.Sprintf("hello %v", data),
 			}
-		}, i)
+		}, i, 1)
 		if err != nil {
 			t.Fatal(err)
 			return
