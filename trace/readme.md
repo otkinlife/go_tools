@@ -7,10 +7,8 @@
 要安装这个包，你可以使用 `go get` 命令：
 
 ```bash
-go get github.com/yourusername/gotracewrapper
+go get github.com/otkinlife/go_tools/trace
 ```
-
-请将 `github.com/yourusername/gotracewrapper` 替换为你的包的实际路径。
 
 ## 使用
 
@@ -41,6 +39,7 @@ func main() {
 ```shell
 go tool trace trace.out 
 ```
+[报告使用方式](./report_usage.md)
 ## 注意事项
 
 `trace` 包主要用于调试和性能优化，在生产环境中通常不会使用，因为它会增加一些运行开销。
