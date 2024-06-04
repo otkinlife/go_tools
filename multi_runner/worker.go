@@ -98,6 +98,7 @@ func (r *Runner) HandleResultsWithStream(handler JobRetHandler) {
 	if r.isHandled {
 		return
 	}
+	r.isHandled = true
 	go func() {
 		r.wg.Wait()
 		close(r.results)
@@ -123,6 +124,7 @@ func (r *Runner) HandleAllResultsWith(handler JobRetHandler) {
 	if r.isHandled {
 		return
 	}
+	r.isHandled = true
 	r.wg.Wait()
 	close(r.results)
 	for ret := range r.results {
