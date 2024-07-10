@@ -2,9 +2,9 @@ package list
 
 import "fmt"
 
-func SplitMap[T any, K comparable](list map[K]T, n int) ([][]T, error) {
-	if n <= 0 {
-		return nil, fmt.Errorf("n must be greater than 0")
+func SplitMap[T any, K comparable](list map[K]T, chunkSize int) ([][]T, error) {
+	if chunkSize <= 0 {
+		return nil, fmt.Errorf("chunkSize must be greater than 0")
 	}
 
 	// Convert map to slice of values
@@ -13,13 +13,10 @@ func SplitMap[T any, K comparable](list map[K]T, n int) ([][]T, error) {
 		values = append(values, value)
 	}
 
-	// Calculate the size of each chunk
 	total := len(values)
 	if total == 0 {
 		return nil, fmt.Errorf("map is empty")
 	}
-
-	chunkSize := (total + n - 1) / n // This ensures we handle rounding up correctly
 
 	// Split values into chunks
 	var ret [][]T
