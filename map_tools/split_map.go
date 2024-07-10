@@ -1,4 +1,4 @@
-package list
+package map_tools
 
 import "fmt"
 
