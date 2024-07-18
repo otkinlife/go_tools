@@ -105,6 +105,10 @@ func (r *Runner) Run() {
 		}(job.ID, job.Execute, job.RunParams)
 		return true
 	})
+	go func() {
+		r.wg.Wait()
+		close(r.results)
+	}()
 }
 
 func (r *Runner) HandleResultsWithStream(handler JobRetHandler) {
@@ -112,24 +116,9 @@ func (r *Runner) HandleResultsWithStream(handler JobRetHandler) {
 		return
 	}
 	r.isHandled = true
-	go func() {
-		r.wg.Wait()
-		close(r.results)
-		r.isRunnerEnd <- 1
-	}()
 	// 实时监听结果，直到所有任务完成
-	for {
-		select {
-		case ret, ok := <-r.results:
-			if !ok {
-				return
-			}
-			handler(ret)
-		case isRunnerEnd := <-r.isRunnerEnd:
-			if isRunnerEnd == 1 {
-				return
-			}
-		}
+	for ret := range r.results {
+		handler(ret)
 	}
 }
 
