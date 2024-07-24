@@ -14,6 +14,7 @@ const (
 
 type JobExecute func(data any) JobRet
 type JobRetHandler func(ret JobRet)
+type JobRetOutputHandler func(ret JobRet, output any)
 
 type JobRet struct {
 	Err  error
@@ -119,6 +120,17 @@ func (r *Runner) HandleResultsWithStream(handler JobRetHandler) {
 	// 实时监听结果，直到所有任务完成
 	for ret := range r.results {
 		handler(ret)
+	}
+}
+
+func (r *Runner) HandleResultsWithStreamAndOutput(handler JobRetOutputHandler, output any) {
+	if r.isHandled {
+		return
+	}
+	r.isHandled = true
+	// 实时监听结果，直到所有任务完成
+	for ret := range r.results {
+		handler(ret, output)
 	}
 }
 
