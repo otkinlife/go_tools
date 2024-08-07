@@ -1,7 +1,7 @@
-package list
+package list_tools
 
-// FindDifferenceNotInSlice2 返回slice1中不在slice2中的元素
-func FindDifferenceNotInSlice2[T comparable](slice1, slice2 []T) []T {
+// FindDifferenceNotInSlice 返回slice1中不在slice2中的元素
+func FindDifferenceNotInSlice[T comparable](slice1, slice2 []T) []T {
 	elementMap := make(map[T]struct{})
 	for _, elem := range slice2 {
 		elementMap[elem] = struct{}{}

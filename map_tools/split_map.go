@@ -5,17 +5,17 @@ import (
 	"fmt"
 )
 
-// SplitMap 将map分割为数组
+// SplitMap2List 将map分割为数组
 // list: 要分割的map
 // chunkSize: 每个数组的长度
-func SplitMap[T any, K comparable](list map[K]T, chunkSize int) ([][]T, error) {
+func SplitMap2List[T any, K comparable](m map[K]T, chunkSize int) ([][]T, error) {
 	if chunkSize <= 0 {
 		return nil, fmt.Errorf("chunkSize must be greater than 0")
 	}
 
 	// Convert map to slice of values
-	values := make([]T, 0, len(list))
-	for _, value := range list {
+	values := make([]T, 0, len(m))
+	for _, value := range m {
 		values = append(values, value)
 	}
 

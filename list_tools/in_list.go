@@ -1,4 +1,4 @@
-package list
+package list_tools
 
 // InList 判断一个字符串是否在一个字符串数组中
 // one: 待判断字符串

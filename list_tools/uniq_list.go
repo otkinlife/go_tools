@@ -1,4 +1,4 @@
-package list
+package list_tools
 
 func UniqList[T comparable](list []T) []T {
 	newList := make([]T, 0)
