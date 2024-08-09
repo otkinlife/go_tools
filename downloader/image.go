@@ -49,12 +49,15 @@ func DownloadImage(url, targetDir string) DImgRet {
 		return ret
 	}
 
-	// 使用 TeeReader 来同时读取响应体并写入文件
-	var buf bytes.Buffer
-	tee := io.TeeReader(resp.Body, &buf)
+	// 读取响应体到字节切片
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		ret.Err = fmt.Errorf("failed to read image data: %w", err)
+		return ret
+	}
 
 	// 尝试解码图片
-	_, format, err := image.Decode(tee)
+	_, format, err := image.Decode(bytes.NewReader(body))
 	if err != nil {
 		ret.Err = fmt.Errorf("failed to decode image: %w", err)
 		return ret
@@ -76,13 +79,11 @@ func DownloadImage(url, targetDir string) DImgRet {
 
 	// 构建文件名
 	hash := md5.New()
-	if _, err := io.Copy(hash, &buf); err != nil {
-		ret.Err = fmt.Errorf("failed to calculate MD5: %w", err)
-		return ret
-	}
+	hash.Write(body)
 	md5Value := fmt.Sprintf("%x", hash.Sum(nil))
 	ret.FileName = fmt.Sprintf("%s.%s", md5Value, format)
 	ret.Filepath = fmt.Sprintf("%s%s", ret.Dir, ret.FileName)
+
 	// 创建文件
 	out, err := os.Create(ret.Filepath)
 	if err != nil {
@@ -90,6 +91,12 @@ func DownloadImage(url, targetDir string) DImgRet {
 		return ret
 	}
 	defer out.Close()
+
+	// 将字节切片的数据写入文件
+	if _, err := out.Write(body); err != nil {
+		ret.Err = fmt.Errorf("failed to write image to file: %w", err)
+		return ret
+	}
 
 	return ret
 }
