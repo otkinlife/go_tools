@@ -68,7 +68,7 @@ func (r *ReqClient) PostRetry(urlStr string, tryCount int) error {
 // method: 请求方法
 // urlStr: 请求地址
 // return: 错误
-func (r *ReqClient) Send(method, urlStr string) error {
+func (r *ReqClient) Send(urlStr string) error {
 	var err error
 	r.req.Method = method
 	r.req.URL, err = url.Parse(urlStr)
