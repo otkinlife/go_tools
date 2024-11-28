@@ -12,12 +12,15 @@ type ReqClient struct {
 	isPrintCurl bool
 }
 
-func NewReqClient(method, url string) *ReqClient {
-	req, _ := http.NewRequest(method, url, nil)
+func NewReqClient(method, url string) (*ReqClient, error) {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
 	return &ReqClient{
 		client: &http.Client{},
 		req:    req,
-	}
+	}, nil
 }
 
 // Send 发送请求
