@@ -1,4 +1,4 @@
-package http
+package http_tools
 
 import (
 	"bytes"
@@ -16,14 +16,14 @@ import (
 	"time"
 )
 
-type Req struct {
+type ReqClient struct {
 	client   *http.Client
 	req      *http.Request
 	response *http.Response
 }
 
-func NewReq() *Req {
-	return &Req{
+func NewReq() *ReqClient {
+	return &ReqClient{
 		client: &http.Client{},
 		req:    &http.Request{},
 	}
@@ -31,7 +31,7 @@ func NewReq() *Req {
 
 // SetHeaders 设置请求头
 // headers: 请求头
-func (r *Req) SetHeaders(headers map[string]string) {
+func (r *ReqClient) SetHeaders(headers map[string]string) {
 	for key, value := range headers {
 		r.req.Header.Set(key, value)
 	}
@@ -39,7 +39,7 @@ func (r *Req) SetHeaders(headers map[string]string) {
 
 // SetQuery 设置请求参数
 // query: 请求参数
-func (r *Req) SetQuery(query map[string]string) {
+func (r *ReqClient) SetQuery(query map[string]string) {
 	q := url.Values{}
 	for key, value := range query {
 		q.Add(key, value)
@@ -49,7 +49,7 @@ func (r *Req) SetQuery(query map[string]string) {
 
 // SetForm 设置表单
 // form: 表单
-func (r *Req) SetForm(form map[string]string) {
+func (r *ReqClient) SetForm(form map[string]string) {
 	f := url.Values{}
 	for key, value := range form {
 		f.Add(key, value)
@@ -60,7 +60,7 @@ func (r *Req) SetForm(form map[string]string) {
 
 // SetJson 设置 JSON 请求体
 // jsonObject: JSON 对象
-func (r *Req) SetJson(jsonObject any) error {
+func (r *ReqClient) SetJson(jsonObject any) error {
 	jsonValue, err := json.Marshal(jsonObject)
 	if err != nil {
 		return err
@@ -72,21 +72,21 @@ func (r *Req) SetJson(jsonObject any) error {
 
 // SetTimeout 设置超时时间
 // timeout: 超时时间
-func (r *Req) SetTimeout(timeout time.Duration) {
+func (r *ReqClient) SetTimeout(timeout time.Duration) {
 	r.client.Timeout = timeout
 }
 
 // Get 发送 GET 请求
 // urlStr: 请求地址
 // return: 错误
-func (r *Req) Get(urlStr string) error {
+func (r *ReqClient) Get(urlStr string) error {
 	return r.Send("GET", urlStr)
 }
 
 // Post 发送 POST 请求
 // urlStr: 请求地址
 // return: 错误
-func (r *Req) Post(urlStr string) error {
+func (r *ReqClient) Post(urlStr string) error {
 	return r.Send("POST", urlStr)
 }
 
@@ -94,7 +94,7 @@ func (r *Req) Post(urlStr string) error {
 // urlStr: 请求地址
 // tryCount: 重试次数
 // return: 错误
-func (r *Req) GetRetry(urlStr string, tryCount int) error {
+func (r *ReqClient) GetRetry(urlStr string, tryCount int) error {
 	var err error
 	for i := 0; i < tryCount; i++ {
 		err = r.Get(urlStr)
@@ -108,7 +108,7 @@ func (r *Req) GetRetry(urlStr string, tryCount int) error {
 // PostRetry 发送 POST 请求，重试
 // urlStr: 请求地址
 // tryCount: 重试次数
-func (r *Req) PostRetry(urlStr string, tryCount int) error {
+func (r *ReqClient) PostRetry(urlStr string, tryCount int) error {
 	var err error
 	for i := 0; i < tryCount; i++ {
 		err = r.Post(urlStr)
@@ -123,7 +123,7 @@ func (r *Req) PostRetry(urlStr string, tryCount int) error {
 // fieldName: 字段名
 // filePath: 文件路径
 // return: 错误
-func (r *Req) UploadFile(fieldName, filePath string) error {
+func (r *ReqClient) UploadFile(fieldName, filePath string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func (r *Req) UploadFile(fieldName, filePath string) error {
 // filePath: 要保存的文件路径（包括文件名）
 // chunkCount: 分块下载的块数: 最大为 32, 0 表示不分块下载
 // return: 错误
-func (r *Req) DownloadFile(url, filePath string, chunkCount int) error {
+func (r *ReqClient) DownloadFile(url, filePath string, chunkCount int) error {
 	if chunkCount > 32 {
 		chunkCount = 32
 	}
@@ -186,7 +186,7 @@ func (r *Req) DownloadFile(url, filePath string, chunkCount int) error {
 	return err
 }
 
-func (r *Req) downloadFileChunks(url string, file *os.File, size, chunkCount int) error {
+func (r *ReqClient) downloadFileChunks(url string, file *os.File, size, chunkCount int) error {
 	chunkSize := size / chunkCount
 	var wg sync.WaitGroup
 	wg.Add(chunkCount)
@@ -222,7 +222,7 @@ func (r *Req) downloadFileChunks(url string, file *os.File, size, chunkCount int
 // method: 请求方法
 // urlStr: 请求地址
 // return: 错误
-func (r *Req) Send(method, urlStr string) error {
+func (r *ReqClient) Send(method, urlStr string) error {
 	var err error
 	r.req.Method = method
 	r.req.URL, err = url.Parse(urlStr)
@@ -240,13 +240,13 @@ func (r *Req) Send(method, urlStr string) error {
 
 // GetHttpCode 获取 HTTP 状态码
 // return: HTTP 状态码
-func (r *Req) GetHttpCode() int {
+func (r *ReqClient) GetHttpCode() int {
 	return r.response.StatusCode
 }
 
 // GetBody 获取响应体
 // return: 响应体
-func (r *Req) GetBody() ([]byte, error) {
+func (r *ReqClient) GetBody() ([]byte, error) {
 	body, err := io.ReadAll(r.response.Body)
 	if err != nil {
 		return nil, err
@@ -257,7 +257,7 @@ func (r *Req) GetBody() ([]byte, error) {
 // LoadBody 加载响应体
 // data: 数据
 // return: 错误
-func (r *Req) LoadBody(data any) error {
+func (r *ReqClient) LoadBody(data any) error {
 	body, err := r.GetBody()
 	if err != nil {
 		return err
@@ -266,7 +266,7 @@ func (r *Req) LoadBody(data any) error {
 }
 
 // Close 关闭请求
-func (r *Req) Close() {
+func (r *ReqClient) Close() {
 	err := r.response.Body.Close()
 	if err != nil {
 		log.Println(err)
@@ -274,6 +274,6 @@ func (r *Req) Close() {
 }
 
 // GetCurlString 获取 cURL 命令
-func (r *Req) GetCurlString() (string, error) {
+func (r *ReqClient) GetCurlString() (string, error) {
 	return ConvertToCurlString(r.req)
 }

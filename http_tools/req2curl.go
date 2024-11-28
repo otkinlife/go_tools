@@ -1,4 +1,4 @@
-package http
+package http_tools
 
 import (
 	"github.com/moul/http2curl"

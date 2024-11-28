@@ -14,7 +14,7 @@ go get -u github.com/otkinlife/go_tools/http
 
 ## 使用方法
 
-首先，你需要创建一个 `Req` 对象：
+首先，你需要创建一个 `ReqClient` 对象：
 
 ```go
 req := http.NewReq()
