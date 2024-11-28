@@ -267,9 +267,11 @@ func (r *ReqClient) LoadBody(data any) error {
 
 // Close 关闭请求
 func (r *ReqClient) Close() {
-	err := r.response.Body.Close()
-	if err != nil {
-		log.Println(err)
+	if r.response != nil {
+		err := r.response.Body.Close()
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
