@@ -22,7 +22,7 @@ type ReqClient struct {
 	response *http.Response
 }
 
-func NewReq() *ReqClient {
+func NewReqClient() *ReqClient {
 	return &ReqClient{
 		client: &http.Client{},
 		req:    &http.Request{},
