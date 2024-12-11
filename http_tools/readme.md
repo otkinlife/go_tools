@@ -7,107 +7,46 @@
 首先，你需要将这个库导入到你的项目中。你可以通过 `go get` 命令来获取这个库：
 
 ```bash
-go get -u github.com/otkinlife/go_tools/http
+go get -u github.com/otkinlife/go_tools/http_tools
 ```
-
-请将 `yourusername` 替换为你的 GitHub 用户名。
 
 ## 使用方法
 
-首先，你需要创建一个 `ReqClient` 对象：
-
 ```go
-req := http.NewReq()
-```
+    url := "https://xxx"
+	cli, err := http_tools.NewReqClient("POST", url)
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Close()
 
-然后，你可以设置请求头和请求参数：
+	//构建请求体
+	paramsJson := map[string]any{}
+	paramsJson["user_name"] = "test"
+	paramsJson["user_id"] = "test"
+	if err := cli.SetJson(paramsJson); err != nil {
+		return nil, err
+	}
 
-```go
-req.SetHeaders(map[string]string{
-	"Content-Type": "application/json",
-})
+	// 构建请求头
+	cli.SetHeaders(map[string]string{
+		"Authorization": fmt.Sprintf("%s", "token"),
+	})
 
-req.SetQuery(map[string]string{
-	"key": "value",
-})
-```
+	// 构建URL以及请求参数
+	if len(req.Query) > 0 {
+		cli.SetQuery(req.Query)
+	}
 
-你也可以设置表单或 JSON 请求体：
+	// 设置超时时间
+	cli.SetTimeout(120 * time.Second)
+	if err := cli.Send(); err != nil {
+		return nil, err
+	}
 
-```go
-req.SetForm(map[string]string{
-	"username": "test",
-	"password": "test",
-})
-
-req.SetJson(map[string]interface{}{
-	"username": "test",
-	"password": "test",
-})
-```
-
-然后，你可以使用 `Get` 或 `Post` 方法发送请求：
-
-```go
-err := req.Get("http://example.com")
-if err != nil {
-	// handle error
-}
-
-err := req.Post("http://example.com")
-if err != nil {
-	// handle error
-}
-```
-
-你还可以使用 `GetRetry` 或 `PostRetry` 方法发送请求并进行重试：
-
-```go
-err := req.GetRetry("http://example.com", 3)
-if err != nil {
-	// handle error
-}
-
-err := req.PostRetry("http://example.com", 3)
-if err != nil {
-	// handle error
-}
-```
-你可以使用 `UploadFile` 方法上传文件：
-
-```go
-err := req.UploadFile("fileField", "/path/to/file.txt")
-if err != nil {
-    // handle error
-}
-
-err = req.Post("http://example.com/upload")
-if err != nil {
-    // handle error
-}
-```
-
-你可以使用 `GetHttpCode` 方法获取 HTTP 状态码：
-
-```go
-code := req.GetHttpCode()
-```
-
-你可以使用 `GetBody` 方法获取响应体：
-
-```go
-body, err := req.GetBody()
-if err != nil {
-	// handle error
-}
-```
-
-你还可以使用 `LoadBody` 方法将响应体加载到一个变量中：
-
-```go
-var data map[string]interface{}
-err := req.LoadBody(&data)
-if err != nil {
-	// handle error
-}
+	code := cli.GetHttpCode()
+	body, err := cli.GetBody()
+	if err != nil {
+		return nil, err
+	}
 ```

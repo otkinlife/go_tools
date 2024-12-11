@@ -5,6 +5,7 @@ import (
 )
 
 // ExtractJsonFromStr 从字符串中提取JSON子串
+// example: ExtractJsonFromStr(`Json is {"a":1,"b":2}`) => `{"a":1,"b":2}`, nil
 func ExtractJsonFromStr(input string) (string, error) {
 	var jsonStart, jsonEnd int
 	var found bool
