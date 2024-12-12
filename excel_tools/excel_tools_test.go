@@ -7,3 +7,9 @@ func TestGetExcelCellAddress(t *testing.T) {
 	t.Logf("GetExcelCellAddress() succeeded, addr: %s", addr)
 	return
 }
+
+func TestGetExcelCellRowColumn(t *testing.T) {
+	row, column := GetExcelCellRowColumn("B1")
+	t.Logf("GetExcelCellRowColumn() succeeded, row: %d, column: %d", row, column)
+	return
+}
