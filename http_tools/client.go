@@ -1,6 +1,8 @@
 package http_tools
 
 import (
+	"bytes"
+	"io"
 	"log"
 	"net/http"
 )
@@ -30,7 +32,12 @@ func NewReqClient(method, url string) (*ReqClient, error) {
 func (r *ReqClient) Send() error {
 	var err error
 	if r.isPrintCurl {
-		log.Println(ConvertToCurlString(*r.req))
+		// 创建请求的副本
+		reqCopy := r.req.Clone(r.req.Context())
+		if err := copyRequestBody(reqCopy, r.req); err != nil {
+			return err
+		}
+		log.Println(ConvertToCurlString(*reqCopy))
 	}
 	resp, err := r.client.Do(r.req)
 	if err != nil {
@@ -48,4 +55,18 @@ func (r *ReqClient) Close() {
 			log.Println(err)
 		}
 	}
+}
+
+// copyRequestBody 复制请求体
+func copyRequestBody(dst, src *http.Request) error {
+	if src.Body == nil {
+		return nil
+	}
+	bodyBytes, err := io.ReadAll(src.Body)
+	if err != nil {
+		return err
+	}
+	src.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	dst.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	return nil
 }
