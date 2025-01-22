@@ -28,3 +28,19 @@ func LocalImageToDataURL(imagePath string) (string, error) {
 	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64EncodedData)
 	return dataURL, nil
 }
+
+func DecodeBase642Img(base64Str, imgPath string) error {
+	// Decode the base64 string
+	imageData, err := base64.StdEncoding.DecodeString(base64Str)
+	if err != nil {
+		return err
+	}
+
+	// Write the image data to a file
+	err = os.WriteFile(imgPath, imageData, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
