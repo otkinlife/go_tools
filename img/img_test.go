@@ -24,9 +24,9 @@ func TestDecodeBase642Img(t *testing.T) {
 	t.Log("TestDecodeBase642Img")
 	imgPath := "test.png"
 	base64Str := "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-	err := DecodeBase642Img(base64Str, imgPath)
-	if err != nil {
-		t.Error(err)
+	ret := DecodeBase642Img(base64Str, imgPath)
+	if !ret {
+		t.Error("DecodeBase642Img() failed")
 		return
 	}
 	t.Log("DecodeBase642Img() succeeded")

@@ -3,9 +3,14 @@ package img
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/otkinlife/go_tools/file_tools"
+	"math/rand"
 	"mime"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
+	"time"
 )
 
 func LocalImageToDataURL(imagePath string) (string, error) {
@@ -29,34 +34,28 @@ func LocalImageToDataURL(imagePath string) (string, error) {
 	return dataURL, nil
 }
 
-func DecodeBase642Img(base64Str, imgPath string) error {
-	// 解码 Base64 字符串
-	imageData, err := base64.StdEncoding.DecodeString(base64Str)
-	if err != nil {
-		return err
+func DecodeBase642Img(path string, base64ImgStr string) bool {
+	b, _ := regexp.MatchString(`^data:\s*image\/(\w+);base64,`, base64ImgStr)
+	if !b {
+		return false
+	}
+	re, _ := regexp.Compile(`^data:\s*image\/(\w+);base64,`)
+	allData := re.FindAllSubmatch([]byte(base64ImgStr), 2)
+	fileType := string(allData[0][1]) //png ，jpeg 后缀获取
+
+	base64Str := re.ReplaceAllString(base64ImgStr, "")
+
+	date := time.Now().Format("20060102")
+	if ok := file_tools.IsFileExist(path + "/" + date); !ok {
+		os.Mkdir(path+"/"+date, 0666)
 	}
 
-	// 获取文件的目录路径
-	dir := filepath.Dir(imgPath)
+	var file = path + "/" + date + "/" + strconv.FormatInt(time.Now().Unix(), 10) + strconv.Itoa(rand.Intn(999999-100000)+100000) + "." + fileType
+	byte, _ := base64.StdEncoding.DecodeString(base64Str)
 
-	// 创建目录（如果不存在）
-	err = os.MkdirAll(dir, 0755)
+	err := os.WriteFile(file, byte, 0666)
 	if err != nil {
-		return err
+		return false
 	}
-
-	// 打开或创建文件
-	file, err := os.OpenFile(imgPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// 将图像数据写入文件
-	_, err = file.Write(imageData)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return true
 }
