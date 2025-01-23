@@ -3,14 +3,10 @@ package img
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/otkinlife/go_tools/file_tools"
-	"math/rand"
 	"mime"
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
-	"time"
 )
 
 func LocalImageToDataURL(imagePath string) (string, error) {
@@ -34,28 +30,35 @@ func LocalImageToDataURL(imagePath string) (string, error) {
 	return dataURL, nil
 }
 
-func DecodeBase642Img(path string, base64ImgStr string) bool {
-	b, _ := regexp.MatchString(`^data:\s*image\/(\w+);base64,`, base64ImgStr)
-	if !b {
-		return false
-	}
-	re, _ := regexp.Compile(`^data:\s*image\/(\w+);base64,`)
-	allData := re.FindAllSubmatch([]byte(base64ImgStr), 2)
-	fileType := string(allData[0][1]) //png ，jpeg 后缀获取
+func DecodeBase642Img(base64Str string, path string) error {
+	// Define a regular expression to match the base64 prefix
+	re := regexp.MustCompile(`^data:image\/[a-zA-Z]+;base64,`)
 
-	base64Str := re.ReplaceAllString(base64ImgStr, "")
-
-	date := time.Now().Format("20060102")
-	if ok := file_tools.IsFileExist(path + "/" + date); !ok {
-		os.Mkdir(path+"/"+date, 0666)
+	// Find the prefix
+	prefix := re.FindString(base64Str)
+	if prefix == "" {
+		return fmt.Errorf("invalid base64 string")
 	}
 
-	var file = path + "/" + date + "/" + strconv.FormatInt(time.Now().Unix(), 10) + strconv.Itoa(rand.Intn(999999-100000)+100000) + "." + fileType
-	byte, _ := base64.StdEncoding.DecodeString(base64Str)
+	// Remove the prefix from the base64 string
+	base64Data := base64Str[len(prefix):]
 
-	err := os.WriteFile(file, byte, 0666)
+	// Decode the base64 string
+	imageData, err := base64.StdEncoding.DecodeString(base64Data)
 	if err != nil {
-		return false
+		return err
 	}
-	return true
+
+	// Ensure the directory exists
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	// Write the image data to the file
+	if err := os.WriteFile(path, imageData, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }
