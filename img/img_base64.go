@@ -62,3 +62,25 @@ func DecodeBase642Img(base64Str string, path string) error {
 
 	return nil
 }
+
+func DecodeBase64(base64Str string) ([]byte, error) {
+	// Define a regular expression to match the base64 prefix
+	re := regexp.MustCompile(`^data:image\/[a-zA-Z]+;base64,`)
+
+	// Find the prefix
+	prefix := re.FindString(base64Str)
+	if prefix == "" {
+		return nil, fmt.Errorf("invalid base64 string")
+	}
+
+	// Remove the prefix from the base64 string
+	base64Data := base64Str[len(prefix):]
+
+	// Decode the base64 string
+	imageData, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return imageData, nil
+}
