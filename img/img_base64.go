@@ -9,7 +9,7 @@ import (
 	"regexp"
 )
 
-func LocalImageToDataURL(imagePath string) (string, error) {
+func EncodeImg2Base64Str(imagePath string) (string, error) {
 	// Guess the MIME type of the image based on the file extension
 	ext := filepath.Ext(imagePath)
 	mimeType := mime.TypeByExtension(ext)
@@ -26,8 +26,8 @@ func LocalImageToDataURL(imagePath string) (string, error) {
 	base64EncodedData := base64.StdEncoding.EncodeToString(imageData)
 
 	// Construct the data URL
-	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64EncodedData)
-	return dataURL, nil
+	base64Str := fmt.Sprintf("data:%s;base64,%s", mimeType, base64EncodedData)
+	return base64Str, nil
 }
 
 func DecodeBase642Img(base64Str string, path string) error {
