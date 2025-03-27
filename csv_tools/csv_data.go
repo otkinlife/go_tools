@@ -59,6 +59,11 @@ func (c *CSVData) SetData(data [][]string) {
 	c.data = data
 }
 
+// AppendData 追加CSV数据
+func (c *CSVData) AppendData(data []string) {
+	c.data = append(c.data, data)
+}
+
 // SetHeaders 加载CSV表头
 func (c *CSVData) SetHeaders(headers []string) {
 	c.headersLine = headers
