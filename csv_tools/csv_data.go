@@ -115,13 +115,13 @@ func (c *CSVData) SaveToFile(filePath string) {
 	// 创建文件，如果没有目录则创建目录
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		err = fmt.Errorf("创建目录失败: %v", err)
+		c.err = fmt.Errorf("创建目录失败: %v", err)
 		return
 	}
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		err = fmt.Errorf("创建文件失败: %v", err)
+		c.err = fmt.Errorf("创建文件失败: %v", err)
 		return
 	}
 	defer file.Close()
@@ -137,50 +137,58 @@ func (c *CSVData) SaveToFile(filePath string) {
 	if c.split != "" {
 		writer.Comma = rune(c.split[0])
 	}
-	defer writer.Flush()
+
+	// 设置自动引用字段，确保特殊字符被正确处理
+	writer.UseCRLF = true
 
 	// 写入表头
 	if err := writer.Write(c.headersLine); err != nil {
 		c.err = fmt.Errorf("写入表头失败: %v", err)
+		return
 	}
 
 	// 写入数据行
 	for _, row := range c.data {
 		if err := writer.Write(row); err != nil {
 			c.err = fmt.Errorf("写入数据行失败: %v", err)
+			return
 		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		c.err = fmt.Errorf("刷新写入器失败: %v", err)
 	}
 }
 
 // GetReader 基于当前的CSVData生成一个CSV读取器
 func (c *CSVData) GetReader() io.Reader {
-	var builder strings.Builder
+	var buf strings.Builder
+
+	writer := csv.NewWriter(&buf)
+	if c.split != "" {
+		writer.Comma = rune(c.split[0])
+	}
+
+	// 设置自动引用字段，确保特殊字符被正确处理
+	writer.UseCRLF = true
 
 	// 写入表头
 	if len(c.headersLine) > 0 {
-		writer := csv.NewWriter(&builder)
-		if c.split != "" {
-			writer.Comma = rune(c.split[0])
-		}
 		writer.Write(c.headersLine)
-		writer.Flush()
 	}
 
 	// 写入数据
-	if len(c.data) > 0 {
-		writer := csv.NewWriter(&builder)
-		if c.split != "" {
-			writer.Comma = rune(c.split[0])
-		}
-		for _, row := range c.data {
-			writer.Write(row)
-		}
-		writer.Flush()
+	for _, row := range c.data {
+		writer.Write(row)
 	}
 
-	// 生成一个io.Reader
-	reader := strings.NewReader(builder.String())
-	return reader
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		c.err = fmt.Errorf("生成CSV字符串失败: %v", err)
+	}
+
+	return strings.NewReader(buf.String())
 }
 
 // GetError 获取处理过程中的错误
