@@ -134,6 +134,9 @@ func (c *CSVData) SaveToFile(filePath string) {
 	}
 
 	writer := csv.NewWriter(file)
+	if c.split != "" {
+		writer.Comma = rune(c.split[0])
+	}
 	defer writer.Flush()
 
 	// 写入表头
@@ -151,16 +154,32 @@ func (c *CSVData) SaveToFile(filePath string) {
 
 // GetReader 基于当前的CSVData生成一个CSV读取器
 func (c *CSVData) GetReader() io.Reader {
-	dataStr := ""
-	if len(c.data) > 0 {
-		var rows []string
-		for _, row := range c.data {
-			rows = append(rows, strings.Join(row, c.split))
+	var builder strings.Builder
+
+	// 写入表头
+	if len(c.headersLine) > 0 {
+		writer := csv.NewWriter(&builder)
+		if c.split != "" {
+			writer.Comma = rune(c.split[0])
 		}
-		dataStr = strings.Join(rows, "\n")
+		writer.Write(c.headersLine)
+		writer.Flush()
 	}
+
+	// 写入数据
+	if len(c.data) > 0 {
+		writer := csv.NewWriter(&builder)
+		if c.split != "" {
+			writer.Comma = rune(c.split[0])
+		}
+		for _, row := range c.data {
+			writer.Write(row)
+		}
+		writer.Flush()
+	}
+
 	// 生成一个io.Reader
-	reader := strings.NewReader(dataStr)
+	reader := strings.NewReader(builder.String())
 	return reader
 }
 
