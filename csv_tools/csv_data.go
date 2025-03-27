@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // CSVData 结构体用于处理CSV数据
@@ -146,6 +147,22 @@ func (c *CSVData) SaveToFile(filePath string) {
 			c.err = fmt.Errorf("写入数据行失败: %v", err)
 		}
 	}
+}
+
+// GetReader 基于当前的CSVData生成一个CSV读取器
+func (c *CSVData) GetReader() *csv.Reader {
+	dataStr := ""
+	if len(c.data) > 0 {
+		var rows []string
+		for _, row := range c.data {
+			rows = append(rows, strings.Join(row, c.split))
+		}
+		dataStr = strings.Join(rows, "\n")
+	}
+
+	r := csv.NewReader(strings.NewReader(dataStr))
+	r.Comma = rune(c.split[0])
+	return r
 }
 
 // GetError 获取处理过程中的错误
