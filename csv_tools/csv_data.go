@@ -150,7 +150,7 @@ func (c *CSVData) SaveToFile(filePath string) {
 }
 
 // GetReader 基于当前的CSVData生成一个CSV读取器
-func (c *CSVData) GetReader() *csv.Reader {
+func (c *CSVData) GetReader() io.Reader {
 	dataStr := ""
 	if len(c.data) > 0 {
 		var rows []string
@@ -159,10 +159,9 @@ func (c *CSVData) GetReader() *csv.Reader {
 		}
 		dataStr = strings.Join(rows, "\n")
 	}
-
-	r := csv.NewReader(strings.NewReader(dataStr))
-	r.Comma = rune(c.split[0])
-	return r
+	// 生成一个io.Reader
+	reader := strings.NewReader(dataStr)
+	return reader
 }
 
 // GetError 获取处理过程中的错误
