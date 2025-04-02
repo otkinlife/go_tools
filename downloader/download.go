@@ -90,9 +90,20 @@ func DownloadFile(url string, filePath string, chunkCount int) error {
 
 	if chunkCount <= 1 {
 		// 不分块下载
-		return downloadSingleChunk(url, file)
-	}
+		if err := downloadSingleChunk(url, file); err != nil {
+			return err
+		}
+		// 关闭文件并重命名
+		if err := file.Close(); err != nil {
+			return fmt.Errorf("failed to close file: %w", err)
+		}
 
+		if err := os.Rename(tempPath, fullPath); err != nil {
+			return fmt.Errorf("failed to rename temp file: %w", err)
+		}
+
+		return nil
+	}
 	// 分块下载
 	return downloadMultipleChunks(url, file, fileSize, chunkCount, tempPath, fullPath)
 }
