@@ -189,11 +189,11 @@ func Panic(ctx context.Context, args ...any) {
 // getLogger 从 context 获取 logger
 func getLogger(ctx context.Context) *Logger {
 	if ctx == nil {
-		return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger())}
+		return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger()), Formatter: &DefaultFormatter{Split: "|"}}
 	}
 
 	if logger, ok := ctx.Value(Key).(*Logger); ok {
 		return logger
 	}
-	return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger())}
+	return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger()), Formatter: &DefaultFormatter{Split: "|"}}
 }
