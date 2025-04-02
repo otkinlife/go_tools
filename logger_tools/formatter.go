@@ -1,4 +1,4 @@
-package logger
+package logger_tools
 
 import (
 	"fmt"
