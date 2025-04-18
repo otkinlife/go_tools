@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
 )
@@ -117,17 +116,4 @@ func (r *ReqClient) SetTimeout(timeout time.Duration) {
 // isPrintCurl: 是否打印 curl 命令
 func (r *ReqClient) SetIsPrintCurl(isPrintCurl bool) {
 	r.isPrintCurl = isPrintCurl
-}
-
-func buildObject2Map(obj any) map[string]any {
-	result := make(map[string]any)
-	v := reflect.ValueOf(obj)
-	t := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		field := t.Field(i)
-		value := v.Field(i).Interface()
-		result[field.Name] = value
-	}
-	return result
 }
