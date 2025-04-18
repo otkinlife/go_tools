@@ -3,11 +3,13 @@ package http_tools
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/spf13/cast"
 	"io"
 	"mime/multipart"
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -30,12 +32,34 @@ func (r *ReqClient) SetQuery(query map[string]string) {
 	r.req.URL.RawQuery = q.Encode()
 }
 
+// SetQueryWithMapAny 设置请求参数
+// query: 请求参数对象
+func (r *ReqClient) SetQueryWithMapAny(query map[string]any) {
+	q := url.Values{}
+	for key, value := range query {
+		q.Add(key, cast.ToString(value))
+	}
+	r.req.URL.RawQuery = q.Encode()
+}
+
 // SetForm 设置表单
 // form: 表单
 func (r *ReqClient) SetForm(form map[string]string) {
 	f := url.Values{}
 	for key, value := range form {
 		f.Add(key, value)
+	}
+	formData := f.Encode()
+	r.req.Body = io.NopCloser(strings.NewReader(formData))
+	r.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+}
+
+// SetFormWithMapAny 设置表单
+// form: 表单对象
+func (r *ReqClient) SetFormWithMapAny(form map[string]any) {
+	f := url.Values{}
+	for key, value := range form {
+		f.Add(key, cast.ToString(value))
 	}
 	formData := f.Encode()
 	r.req.Body = io.NopCloser(strings.NewReader(formData))
@@ -93,4 +117,17 @@ func (r *ReqClient) SetTimeout(timeout time.Duration) {
 // isPrintCurl: 是否打印 curl 命令
 func (r *ReqClient) SetIsPrintCurl(isPrintCurl bool) {
 	r.isPrintCurl = isPrintCurl
+}
+
+func buildObject2Map(obj any) map[string]any {
+	result := make(map[string]any)
+	v := reflect.ValueOf(obj)
+	t := v.Type()
+
+	for i := 0; i < v.NumField(); i++ {
+		field := t.Field(i)
+		value := v.Field(i).Interface()
+		result[field.Name] = value
+	}
+	return result
 }
