@@ -191,6 +191,20 @@ func (c *CSVData) GetReader() io.Reader {
 	return strings.NewReader(buf.String())
 }
 
+func (c *CSVData) String() string {
+	var buf strings.Builder
+
+	// 写入表头
+	buf.WriteString(strings.Join(c.headersLine, c.split) + "\n")
+
+	// 写入数据行
+	for _, row := range c.data {
+		buf.WriteString(strings.Join(row, c.split) + "\n")
+	}
+
+	return buf.String()
+}
+
 // GetError 获取处理过程中的错误
 func (c *CSVData) GetError() error {
 	return c.err
