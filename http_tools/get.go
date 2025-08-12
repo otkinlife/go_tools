@@ -2,6 +2,7 @@ package http_tools
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -25,6 +26,19 @@ func (r *ReqClient) GetBody() ([]byte, error) {
 		return nil, err
 	}
 	return body, nil
+}
+
+// GetBodyString 获取响应体字符串
+// return: 响应体字符串
+func (r *ReqClient) GetBodyString() string {
+	body, err := r.GetBody()
+	if err != nil {
+		return fmt.Sprintf("Error reading body: %v", err)
+	}
+	if body == nil {
+		return ""
+	}
+	return string(body)
 }
 
 // GetBodyReadCloser 获取响应体读取器
