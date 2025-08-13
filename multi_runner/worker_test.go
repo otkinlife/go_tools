@@ -55,7 +55,7 @@ func TestRunWithCtx(t *testing.T) {
 	}
 
 	r.Run()
-	r.HandleResultsWithStream(ctx, func(ctx context.Context, ret JobRet) {
+	r.HandleResultsWithStream(func(ctx context.Context, ret JobRet) {
 		t.Log(ret)
 	})
 	return

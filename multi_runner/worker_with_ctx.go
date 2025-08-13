@@ -144,7 +144,7 @@ func (r *RunnerWithCtx) Run() {
 }
 
 // HandleResultsWithStream 实时处理结果流
-func (r *RunnerWithCtx) HandleResultsWithStream(ctx context.Context, handler JobRetHandlerWithCtx) {
+func (r *RunnerWithCtx) HandleResultsWithStream(handler JobRetHandlerWithCtx) {
 	r.mu.Lock()
 	if r.isHandled {
 		r.mu.Unlock()
@@ -161,7 +161,7 @@ func (r *RunnerWithCtx) HandleResultsWithStream(ctx context.Context, handler Job
 				// 结果通道已关闭
 				return
 			}
-			handler(ctx, ret)
+			handler(r.ctx, ret)
 		case <-r.ctx.Done():
 			// 上下文被取消，停止处理
 			return
@@ -170,7 +170,7 @@ func (r *RunnerWithCtx) HandleResultsWithStream(ctx context.Context, handler Job
 }
 
 // HandleResultsWithStreamAndOutput 实时处理结果流并传递输出参数
-func (r *RunnerWithCtx) HandleResultsWithStreamAndOutput(ctx context.Context, handler JobRetOutputHandlerWithCtx, output any) {
+func (r *RunnerWithCtx) HandleResultsWithStreamAndOutput(handler JobRetOutputHandlerWithCtx, output any) {
 	r.mu.Lock()
 	if r.isHandled {
 		r.mu.Unlock()
@@ -187,7 +187,7 @@ func (r *RunnerWithCtx) HandleResultsWithStreamAndOutput(ctx context.Context, ha
 				// 结果通道已关闭
 				return
 			}
-			handler(ctx, ret, output)
+			handler(r.ctx, ret, output)
 		case <-r.ctx.Done():
 			// 上下文被取消，停止处理
 			return
@@ -196,7 +196,7 @@ func (r *RunnerWithCtx) HandleResultsWithStreamAndOutput(ctx context.Context, ha
 }
 
 // HandleAllResultsWith 等待所有任务完成后处理结果
-func (r *RunnerWithCtx) HandleAllResultsWith(ctx context.Context, handler JobRetHandlerWithCtx) {
+func (r *RunnerWithCtx) HandleAllResultsWith(handler JobRetHandlerWithCtx) {
 	r.mu.Lock()
 	if r.isHandled {
 		r.mu.Unlock()
@@ -218,7 +218,7 @@ func (r *RunnerWithCtx) HandleAllResultsWith(ctx context.Context, handler JobRet
 		// 所有任务完成
 		close(r.results)
 		for ret := range r.results {
-			handler(ctx, ret)
+			handler(r.ctx, ret)
 		}
 	case <-r.ctx.Done():
 		// 上下文被取消
