@@ -3,10 +3,11 @@ package logger_tools
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"io"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -65,8 +66,13 @@ func WithField(ctx context.Context, key string, value any) context.Context {
 	if ctx == nil {
 		ctx = NewContext(nil)
 	}
-	entry := getLogger(ctx).Logger.WithField(key, value)
-	return context.WithValue(ctx, Key, entry)
+	logger := getLogger(ctx)
+	entry := logger.Logger.WithField(key, value)
+	newLogger := &Logger{
+		Logger:    entry,
+		Formatter: logger.Formatter, // 保持原有的格式化器
+	}
+	return context.WithValue(ctx, Key, newLogger)
 }
 
 // WithFields 添加多个字段并返回新的上下文
@@ -74,8 +80,13 @@ func WithFields(ctx context.Context, fields map[string]any) context.Context {
 	if ctx == nil {
 		ctx = NewContext(nil)
 	}
-	entry := getLogger(ctx).Logger.WithFields(fields)
-	return context.WithValue(ctx, Key, entry)
+	logger := getLogger(ctx)
+	entry := logger.Logger.WithFields(fields)
+	newLogger := &Logger{
+		Logger:    entry,
+		Formatter: logger.Formatter, // 保持原有的格式化器
+	}
+	return context.WithValue(ctx, Key, newLogger)
 }
 
 // Info 记录 info 级别日志
