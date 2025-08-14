@@ -15,8 +15,9 @@ const (
 )
 
 type Logger struct {
-	Logger    *logrus.Entry
-	Formatter Formatter
+	Logger     *logrus.Entry
+	Formatter  Formatter
+	FieldOrder []string // 记录字段添加顺序
 }
 
 // NewContext function should be updated to:
@@ -31,8 +32,9 @@ func NewContext(ctx context.Context) context.Context {
 	log.SetReportCaller(true)
 	log.SetFormatter(defaultFormatter)
 	logger := &Logger{
-		Logger:    log.WithField("trace_id", traceID),
-		Formatter: defaultFormatter,
+		Logger:     log.WithField("trace_id", traceID),
+		Formatter:  defaultFormatter,
+		FieldOrder: []string{"trace_id"}, // 初始化字段顺序
 	}
 	return context.WithValue(ctx, Key, logger)
 }
@@ -67,10 +69,36 @@ func WithField(ctx context.Context, key string, value any) context.Context {
 		ctx = NewContext(nil)
 	}
 	logger := getLogger(ctx)
-	entry := logger.Logger.WithField(key, value)
+
+	// 创建新的字段顺序列表
+	newFieldOrder := make([]string, len(logger.FieldOrder))
+	copy(newFieldOrder, logger.FieldOrder)
+
+	// 如果字段不存在，添加到顺序列表
+	found := false
+	for _, existingKey := range newFieldOrder {
+		if existingKey == key {
+			found = true
+			break
+		}
+	}
+	if !found {
+		newFieldOrder = append(newFieldOrder, key)
+	}
+
+	// 创建包含字段顺序的fields
+	allFields := make(logrus.Fields)
+	for k, v := range logger.Logger.Data {
+		allFields[k] = v
+	}
+	allFields[key] = value
+	allFields["__field_order"] = newFieldOrder
+
+	entry := logger.Logger.WithFields(allFields)
 	newLogger := &Logger{
-		Logger:    entry,
-		Formatter: logger.Formatter, // 保持原有的格式化器
+		Logger:     entry,
+		Formatter:  logger.Formatter,
+		FieldOrder: newFieldOrder,
 	}
 	return context.WithValue(ctx, Key, newLogger)
 }
@@ -81,10 +109,40 @@ func WithFields(ctx context.Context, fields map[string]any) context.Context {
 		ctx = NewContext(nil)
 	}
 	logger := getLogger(ctx)
-	entry := logger.Logger.WithFields(fields)
+
+	// 创建新的字段顺序列表
+	newFieldOrder := make([]string, len(logger.FieldOrder))
+	copy(newFieldOrder, logger.FieldOrder)
+
+	// 添加新字段到顺序列表（如果不存在）
+	for key := range fields {
+		found := false
+		for _, existingKey := range newFieldOrder {
+			if existingKey == key {
+				found = true
+				break
+			}
+		}
+		if !found {
+			newFieldOrder = append(newFieldOrder, key)
+		}
+	}
+
+	// 创建包含字段顺序的fields
+	allFields := make(logrus.Fields)
+	for k, v := range logger.Logger.Data {
+		allFields[k] = v
+	}
+	for k, v := range fields {
+		allFields[k] = v
+	}
+	allFields["__field_order"] = newFieldOrder
+
+	entry := logger.Logger.WithFields(allFields)
 	newLogger := &Logger{
-		Logger:    entry,
-		Formatter: logger.Formatter, // 保持原有的格式化器
+		Logger:     entry,
+		Formatter:  logger.Formatter,
+		FieldOrder: newFieldOrder,
 	}
 	return context.WithValue(ctx, Key, newLogger)
 }
@@ -200,11 +258,19 @@ func Panic(ctx context.Context, args ...any) {
 // getLogger 从 context 获取 logger
 func getLogger(ctx context.Context) *Logger {
 	if ctx == nil {
-		return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger()), Formatter: &DefaultFormatter{Split: "|"}}
+		return &Logger{
+			Logger:     logrus.NewEntry(logrus.StandardLogger()),
+			Formatter:  &DefaultFormatter{Split: "|"},
+			FieldOrder: []string{},
+		}
 	}
 
 	if logger, ok := ctx.Value(Key).(*Logger); ok {
 		return logger
 	}
-	return &Logger{Logger: logrus.NewEntry(logrus.StandardLogger()), Formatter: &DefaultFormatter{Split: "|"}}
+	return &Logger{
+		Logger:     logrus.NewEntry(logrus.StandardLogger()),
+		Formatter:  &DefaultFormatter{Split: "|"},
+		FieldOrder: []string{},
+	}
 }
