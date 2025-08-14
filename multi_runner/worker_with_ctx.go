@@ -25,7 +25,6 @@ type JobWithCtx struct {
 
 type RunnerWithCtx struct {
 	ctx         context.Context
-	cancel      context.CancelFunc
 	maxSize     int //最大同时并发量
 	jobs        sync.Map
 	jobsCount   int
@@ -39,10 +38,8 @@ type RunnerWithCtx struct {
 
 // NewRunnerWithCtx 创建支持上下文的新Runner
 func NewRunnerWithCtx(ctx context.Context, maxSize int) *RunnerWithCtx {
-	ctxWithCancel, cancel := context.WithCancel(ctx)
 	return &RunnerWithCtx{
-		ctx:         ctxWithCancel,
-		cancel:      cancel,
+		ctx:         ctx,
 		wg:          sync.WaitGroup{},
 		maxSize:     maxSize,
 		jobs:        sync.Map{},
@@ -225,9 +222,9 @@ func (r *RunnerWithCtx) HandleAllResultsWith(handler JobRetHandlerWithCtx) {
 	}
 }
 
-// Cancel 取消所有正在运行的任务
+// Cancel 取消所有正在运行的任务（此实现不支持取消）
 func (r *RunnerWithCtx) Cancel() {
-	r.cancel()
+	// 当前实现不支持主动取消任务
 }
 
 // Context 获取Runner的上下文
