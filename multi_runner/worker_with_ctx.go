@@ -215,8 +215,7 @@ func (r *RunnerWithCtx) HandleAllResultsWith(handler JobRetHandlerWithCtx) {
 	// 等待任务完成或上下文被取消
 	select {
 	case <-done:
-		// 所有任务完成
-		close(r.results)
+		// 所有任务完成，results channel已在Run()方法中关闭
 		for ret := range r.results {
 			handler(r.ctx, ret)
 		}
