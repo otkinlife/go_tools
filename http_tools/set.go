@@ -3,7 +3,6 @@ package http_tools
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/spf13/cast"
 	"io"
 	"mime/multipart"
 	"net/url"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/spf13/cast"
 )
 
 // SetHeaders 设置请求头
@@ -83,6 +84,9 @@ func (r *ReqClient) SetFile(fieldName, filePath string) error {
 		return err
 	}
 	_, err = io.Copy(part, file)
+	if err != nil {
+		return err
+	}
 
 	err = writer.Close()
 	if err != nil {
