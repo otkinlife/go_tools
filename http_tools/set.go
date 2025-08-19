@@ -4,11 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"mime/multipart"
 	"net/url"
-	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/spf13/cast"
@@ -45,25 +41,17 @@ func (r *ReqClient) SetQueryWithMapAny(query map[string]any) {
 // SetForm 设置表单
 // form: 表单
 func (r *ReqClient) SetForm(form map[string]string) {
-	f := url.Values{}
 	for key, value := range form {
-		f.Add(key, value)
+		r.formFields[key] = value
 	}
-	formData := f.Encode()
-	r.req.Body = io.NopCloser(strings.NewReader(formData))
-	r.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 }
 
 // SetFormWithMapAny 设置表单
 // form: 表单对象
 func (r *ReqClient) SetFormWithMapAny(form map[string]any) {
-	f := url.Values{}
 	for key, value := range form {
-		f.Add(key, cast.ToString(value))
+		r.formFields[key] = cast.ToString(value)
 	}
-	formData := f.Encode()
-	r.req.Body = io.NopCloser(strings.NewReader(formData))
-	r.req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 }
 
 // SetFile 上传文件
@@ -71,30 +59,10 @@ func (r *ReqClient) SetFormWithMapAny(form map[string]any) {
 // filePath: 文件路径
 // return: 错误
 func (r *ReqClient) SetFile(fieldName, filePath string) error {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(fieldName, filepath.Base(filePath))
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(part, file)
-	if err != nil {
-		return err
-	}
-
-	err = writer.Close()
-	if err != nil {
-		return err
-	}
-
-	r.req.Body = io.NopCloser(body)
-	r.req.Header.Set("Content-Type", writer.FormDataContentType())
+	r.files = append(r.files, fileField{
+		fieldName: fieldName,
+		filePath:  filePath,
+	})
 	return nil
 }
 
