@@ -7,8 +7,8 @@ import (
 	"github.com/otkinlife/go_tools/logger_tools"
 )
 
-// UnmarshalJson 将JSON字符串解码到提供的接口中
-func UnmarshalJson(data string, v any) error {
+// Unmarshal 将JSON字符串解码到提供的接口中
+func Unmarshal(data string, v any) error {
 	err := json.Unmarshal([]byte(data), v)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
@@ -16,8 +16,8 @@ func UnmarshalJson(data string, v any) error {
 	return nil
 }
 
-// MarshalJson 将提供的接口编码为JSON字符串
-func MarshalJson(v any) (string, error) {
+// Marshal 将提供的接口编码为JSON字符串
+func Marshal(v any) (string, error) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JSON: %w", err)
@@ -25,18 +25,18 @@ func MarshalJson(v any) (string, error) {
 	return string(data), nil
 }
 
-// UnmarshalJsonWithoutError 尝试将JSON字符串解码到提供的接口中，但不返回错误
+// UnmarshalWTE 尝试将JSON字符串解码到提供的接口中，但不返回错误
 // 如果解码失败，将打印错误信息
 // 注意：这种方式可能会导致数据不完整或错误，因此仅在你确定数据
-func UnmarshalJsonWithoutError(data string, v any) {
+func UnmarshalWTE(data string, v any) {
 	err := json.Unmarshal([]byte(data), v)
 	if err != nil {
 		logger_tools.Error(nil, "解码 JSON 失败", err, data)
 	}
 }
 
-// MarshalJsonWithoutError 尝试将提供的接口编码为JSON字符串，但不返回错误
-func MarshalJsonWithoutError(v any) string {
+// MarshalWTE 尝试将提供的接口编码为JSON字符串，但不返回错误
+func MarshalWTE(v any) string {
 	data, err := json.Marshal(v)
 	if err != nil {
 		logger_tools.Error(nil, "编码 JSON 失败", err, v)
