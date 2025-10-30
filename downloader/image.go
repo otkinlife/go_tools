@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"fmt"
-	"github.com/otkinlife/go_tools/img"
 	"image"
 	_ "image/jpeg" // 注册 JPEG 格式解码器
 	_ "image/png"  // 注册 PNG 格式解码器
@@ -12,6 +11,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/otkinlife/go_tools/img"
+	_ "golang.org/x/image/webp" // 注册 WebP 格式解码器
 )
 
 type DImgRet struct {
