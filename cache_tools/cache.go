@@ -81,7 +81,14 @@ func (c *Cache) SetStringWithExpiration(params string, v string, d time.Duration
 	log.Printf("set cache:%s", key)
 
 	// 给watcher发信号，校验是否超出size限制
-	LimitCh <- 1
+	// 安全检查：只有当 LimitCh 已初始化时才发送信号
+	if LimitCh != nil {
+		select {
+		case LimitCh <- 1:
+		default:
+			// channel 已满，跳过此次通知
+		}
+	}
 }
 
 // SetString 写入cache
@@ -98,7 +105,14 @@ func (c *Cache) SetString(params string, v string) {
 	c.updateKeyList(key)
 	log.Printf("set cache:%s", key)
 	// 给watcher发信号，校验是否超出size限制
-	LimitCh <- 1
+	// 安全检查：只有当 LimitCh 已初始化时才发送信号
+	if LimitCh != nil {
+		select {
+		case LimitCh <- 1:
+		default:
+			// channel 已满，跳过此次通知
+		}
+	}
 }
 
 // GetString 获取cache
